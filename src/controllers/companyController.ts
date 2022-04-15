@@ -3,11 +3,11 @@ import * as companyService from '../services/companyService.js';
 
 export async function getCompany(req: Request, res: Response){
 
-    const apiKey = req.headers.apikey;
-    const stringApiKey = String(apiKey)
+    const { key } = req.headers;
+    const keyTypeString = String(key)  
 
-    const response = await companyService.getCompanyIfExist(stringApiKey);
+    const existingCompany = await companyService.getCompanyIfExist(keyTypeString);
 
-    console.log('response',response);
+    console.log('existingCompany',existingCompany);
     res.sendStatus(200)
 }
