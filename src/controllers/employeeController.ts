@@ -3,13 +3,12 @@ import * as employeeService from "../services/employeeService.js";
 
 export async function selectEmployee(req: Request, res: Response){
 
-    const id = 3;
-    
-    const existingEmployee = await employeeService.seUsuarioExisteOuNao(id)
+    const { id } = req.params;
+    const idTypeNumber = Number(id);
 
-    console.log('employee', existingEmployee)
+    const existingEmployee = await employeeService.seUsuarioExisteOuNao(idTypeNumber)
 
-    
+    console.log('employeecontroller', existingEmployee)
 
     res.sendStatus(200);
 };
