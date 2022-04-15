@@ -6,9 +6,9 @@ export async function selectEmployee(req: Request, res: Response){
     const { id } = req.params;
     const idTypeNumber = Number(id);
 
-    const existingEmployee = await employeeService.seUsuarioExisteOuNao(idTypeNumber)
+    const existingEmployee = await employeeService.getUserIfExist(idTypeNumber)
 
-    console.log('employeecontroller', existingEmployee)
+    console.log('employeeController', existingEmployee)
 
     res.sendStatus(200);
 };

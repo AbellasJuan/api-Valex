@@ -1,6 +1,6 @@
 import * as employeeRepository from "../repositories/employeeRepository.js";
 
-export async function seUsuarioExisteOuNao(id: number){
+export async function getUserIfExist(id: number){
     
     const employee = await employeeRepository.findById(id);
 
