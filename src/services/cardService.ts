@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker";
 import dayjs from "dayjs";
+import { nanoid } from 'nanoid/async';
 import * as errorUtils from "../../utils/errorsUtils.js"
 import * as employeeRepository from "../repositories/employeeRepository.js";
 import * as cardRepository from "../repositories/cardRepository.js";
@@ -42,7 +43,7 @@ export async function createCard(employeeId: number, type: cardRepository.Transa
 async function formatCardData(employeeId: number, type: cardRepository.TransactionTypes) {
     const number = faker.finance.creditCardNumber('mastercard');
     const cardholderName = await formatEmployeeName(employeeId);
-    const securityCode = faker.finance.creditCardCVV();
+    const securityCode = await createCriptoCVV();
     const expirationDate = dayjs().add(5, "year").format("MM/YY");
 
     return {
@@ -63,7 +64,7 @@ function formatName(name: string) {
     const nameToArray = name.toUpperCase().split(' ');
     let cardholderName = nameToArray[0];
     
-    for(let i = 1; i < (nameToArray.length - 1); i++){
+    for(let i = 1; i < (nameToArray.length-1); i++){
         if(nameToArray[i].length >= 3) cardholderName += ` ${nameToArray[i][0]}`;
     };
 
@@ -73,6 +74,12 @@ function formatName(name: string) {
 async function formatEmployeeName(employeeId: number) {
     const { fullName } = await employeeRepository.findById(employeeId);
     return formatName(fullName);
+};
+
+async function createCriptoCVV(){
+    let securityCode = faker.finance.creditCardCVV();
+    securityCode = await nanoid(10);
+    return securityCode;
 };
 
 export async function deleteCardById(id: number){
