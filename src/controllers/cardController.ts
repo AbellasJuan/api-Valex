@@ -4,7 +4,6 @@ import * as cardService from '../services/cardService.js';
 export async function getAllCards(req: Request, res: Response){
     const existingCard = await cardService.getAllCardsIfExist();
 
-    console.log('existingCard', existingCard);
     res.sendStatus(200)
 };
 
@@ -12,9 +11,8 @@ export async function getCardByCardId(req: Request, res: Response){
     const { id } = req.params;
     const idTypeNumber = Number(id);
 
-    const existingCard = await cardService.getCardByCardIdIfExist(idTypeNumber);
+    await cardService.getCardByCardIdIfExist(idTypeNumber);
 
-    console.log('existingCardById', existingCard);
     res.sendStatus(200)
 };
 
@@ -37,13 +35,10 @@ export async function deleteCardById(req: Request, res: Response){
     res.sendStatus(200);
 }
 
-// export async function updateCard(req: Request, res: Response){
-//     const { id } = req.params;
-//     const idTypeNumber = Number(id);
+export async function validateCard(req: Request, res: Response){
+    const { securityCode, password, originalCardId } = req.body;
 
-//     console.log('entrou update:', id)
+    await cardService.activateCard(securityCode, password, originalCardId);
 
-//     await cardService.updateCard(idTypeNumber);
-
-//     res.sendStatus(200)
-// };
+    res.sendStatus(200);
+};
