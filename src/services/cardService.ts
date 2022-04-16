@@ -3,7 +3,6 @@ import dayjs from "dayjs";
 import * as errorUtils from "../../utils/errorsUtils.js"
 import * as employeeRepository from "../repositories/employeeRepository.js";
 import * as cardRepository from "../repositories/cardRepository.js";
-import { string } from "joi";
 
 export async function getAllCardsIfExist(){
     const card = await cardRepository.find();

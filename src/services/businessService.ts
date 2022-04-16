@@ -1,10 +1,11 @@
+import * as errorUtils from "../../utils/errorsUtils.js"
 import * as businessRepository from '../repositories/businessRepository.js';
 
 export async function getBusinessIfExist(id: number){
-
+    const entityName = 'business';
     const business = await businessRepository.findById(id);
 
-    if(!business) throw {type: 'not_found', message:'business not found'}
+    errorUtils.errorNotFound(business, entityName);
 
     return business;
 }
