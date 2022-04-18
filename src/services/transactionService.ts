@@ -5,8 +5,7 @@ import * as paymentRepository from '../repositories/paymentRepository.js';
 import * as businessRepository from '../repositories/businessRepository.js';
 import * as cardService from '../services/cardService.js';
 
-export async function createTransaction(cardId: number, password: string, businessId: number, amount: number) {
-
+export async function createTransaction(cardId: number, password: string, businessId: number, amount: number){
     const cardData = await cardRepository.findById(cardId);
     
     await verifyIfCardExist(cardData);

@@ -1,38 +1,33 @@
 import { faker } from "@faker-js/faker";
 import dayjs from "dayjs";
 import bcrypt from 'bcrypt';
-import * as errorUtils from "../../utils/errorsUtils.js"
 import * as employeeRepository from "../repositories/employeeRepository.js";
 import * as cardRepository from "../repositories/cardRepository.js";
 import * as paymentRepository from "../repositories/paymentRepository.js";
 import * as rechargesRepository from "../repositories/rechargeRepository.js";
 
 export async function getAllCardsIfExist(){
-    const card = await cardRepository.find();
-    const entityName = 'card';
+    const cardData = await cardRepository.find();
 
-    errorUtils.errorNotFound(card, entityName)
+    if(cardData.length === 0 || !cardData) throw {type: 'not_found', message: 'card not found'};
     
-    return card;
+    return cardData;
 };
 
 export async function getCardByCardIdIfExist(id: number){
-    const card = await cardRepository.findById(id);
-    const entityName = 'card';
+    const cardData = await cardRepository.findById(id);
 
-    errorUtils.errorNotFound(card, entityName)
-    return card;
+    if(!cardData) throw {type: 'not_found', message: 'card not found'};
+    return cardData;
 };
 
 export async function validateCreation(employeeId: number, companyId: number, type: cardRepository.TransactionTypes) {
-    const entityName = 'employee';
-
     const employee = await employeeRepository.findById(employeeId);
-    errorUtils.errorNotFound(employee, entityName);
+    if(!employee) throw {type: 'not_found', message: 'employee not found'};
     if (employee.companyId !== companyId) throw {type: 'unauthorized', message:'unauthorized to create card'};
 
-    const card = await cardRepository.findByTypeAndEmployeeId(type, employeeId);
-    if(card) throw {type: 'unauthorized', message:'unauthorized to create card'};
+    const cardData = await cardRepository.findByTypeAndEmployeeId(type, employeeId);
+    if(cardData) throw {type: 'unauthorized', message:'unauthorized to create card'};
 };
 
 export async function createCard(employeeId: number, type: cardRepository.TransactionTypes) {
@@ -87,10 +82,8 @@ export async function deleteCardById(id: number){
 };
 
 export async function activateCard(securityCode: string, password: string, originalCardId: number){
-    const entityName = 'card';
-
     const cardData = await cardRepository.findById(originalCardId);
-    errorUtils.errorNotFound(cardData, entityName)
+    if(cardData) throw {type: 'not_found', message: 'card not found'};
 
     await verifyCardExpirationDate(cardData);
     await verifyCVC(securityCode, cardData);
@@ -120,8 +113,8 @@ async function verifyIfCardActivated(cardData: cardRepository.Card){
 };
 
 export async function getBalanceAndTransactions(id: number){
-	const card = await cardRepository.findById(id);
-	if (!card) throw { type: 'nonexistent card', message: 'The card is not registered' }
+	const cardData = await cardRepository.findById(id);
+	if (!cardData) throw { type: 'nonexistent card', message: 'The card is not registered' }
 
 	const transactions = await paymentRepository.findByCardId(id);
 	const recharges =  await rechargesRepository.findByCardId(id);

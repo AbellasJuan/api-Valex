@@ -1,13 +1,11 @@
 import dayjs from 'dayjs';
 import * as cardRepository from '../repositories/cardRepository.js';
 import * as rechargeRepository from '../repositories/rechargeRepository.js';
-import * as errorUtils from '../../utils/errorsUtils.js'
 
 export async function rechargeCard(cardId: number, amount: number) {
-    const entityName = 'card';
-
     const cardData = await cardRepository.findById(cardId);
-    errorUtils.errorNotFound(cardData, entityName)
+
+    if(!cardData) throw {type: 'not_found', message: 'card not found'};
 
 	const currentDate = dayjs().format("MM/YY");
     const expirationDate = cardData.expirationDate;
