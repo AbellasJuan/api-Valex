@@ -4,6 +4,8 @@ import bcrypt from 'bcrypt';
 import * as errorUtils from "../../utils/errorsUtils.js"
 import * as employeeRepository from "../repositories/employeeRepository.js";
 import * as cardRepository from "../repositories/cardRepository.js";
+import * as paymentRepository from "../repositories/paymentRepository.js";
+import * as rechargesRepository from "../repositories/rechargeRepository.js";
 
 export async function getAllCardsIfExist(){
     const card = await cardRepository.find();
@@ -115,4 +117,26 @@ export async function activateCard(securityCode: string, password: string, origi
 
     // validar cartao
     await cardRepository.update(originalCardId, cardDataValidated);
+};
+
+export async function getBalanceAndTransactions(id: number){
+	const card = await cardRepository.findById(id);
+	if (!card) throw { type: 'nonexistent card', message: 'The card is not registered' }
+
+	const transactions = await paymentRepository.findByCardId(id);
+	const recharges =  await rechargesRepository.findByCardId(id);
+
+	const transactionsTotal = transactions
+		.map(transaction => transaction.amount)
+		.reduce((curr: number, sum: number) => curr + sum, 0);
+	
+	const rechargesTotal = recharges
+		.map((recharge) => recharge.amount)
+		.reduce((curr: number, sum: number) => curr + sum, 0);
+	
+	return {
+		balance: rechargesTotal - transactionsTotal,
+		transactions,
+		recharges
+	};
 };

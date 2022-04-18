@@ -2,12 +2,9 @@ import { Request, Response } from "express";
 import * as companyService from '../services/companyService.js';
 
 export async function getCompany(req: Request, res: Response){
+    const apiKey = res.locals.apiKey;
 
-    const { key } = req.headers;
-    const keyTypeString = String(key)  
+    const existingCompany = await companyService.getCompanyIfExist(apiKey);
 
-    const existingCompany = await companyService.getCompanyIfExist(keyTypeString);
-
-    console.log('existingCompany',existingCompany);
-    res.sendStatus(200)
-}
+    res.status(200).send(existingCompany);
+};

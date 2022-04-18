@@ -4,7 +4,7 @@ import * as cardService from '../services/cardService.js';
 export async function getAllCards(req: Request, res: Response){
     const existingCard = await cardService.getAllCardsIfExist();
 
-    res.sendStatus(200)
+    res.status(200).send(existingCard);
 };
 
 export async function getCardByCardId(req: Request, res: Response){
@@ -41,4 +41,13 @@ export async function validateCard(req: Request, res: Response){
     await cardService.activateCard(securityCode, password, originalCardId);
 
     res.sendStatus(200);
+};
+
+export async function getCardBalanceAndTransactions(req: Request, res: Response) {
+    const { id } = req.params;
+    const idTypeNumber = Number(id);
+
+    const balanceAndTransactions = await cardService.getBalanceAndTransactions(idTypeNumber)
+
+    res.send(balanceAndTransactions).status(200);
 };
