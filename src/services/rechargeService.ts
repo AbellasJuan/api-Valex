@@ -7,9 +7,6 @@ export async function rechargeCard(cardId: number, amount: number) {
     const entityName = 'card';
 
     const cardData = await cardRepository.findById(cardId);
-
-    console.log('encotrou aqui na service:', cardData)
-	
     errorUtils.errorNotFound(cardData, entityName)
 
 	const currentDate = dayjs().format("MM/YY");

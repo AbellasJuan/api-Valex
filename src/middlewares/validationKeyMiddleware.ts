@@ -5,12 +5,9 @@ export default async function validationKeyMiddleware(req: Request, res: Respons
     
     const apiKey = req.headers["x-api-key"] as string;
     const company = await companyRepository.findByApiKey(apiKey);
-    console.log(company)
     if (!company) throw {type: 'unauthorized', message:'company unauhorized to create card'}
 
-    console.log(apiKey)
     res.locals.companyId = company.id;
     res.locals.apiKey = apiKey;
-
     next();
 };

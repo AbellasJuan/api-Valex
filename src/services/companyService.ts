@@ -4,11 +4,7 @@ import * as companyRepository from '../repositories/companyRepository.js';
 export async function getCompanyIfExist(apiKey: string){
     const entityName = 'company';
 
-    console.log(apiKey)
-    
     const company = await companyRepository.findByApiKey(apiKey);
-
     errorUtils.errorNotFound(company, entityName);
-
     return company;
 };

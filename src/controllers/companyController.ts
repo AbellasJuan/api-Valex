@@ -5,6 +5,5 @@ export async function getCompany(req: Request, res: Response){
     const apiKey = res.locals.apiKey;
 
     const existingCompany = await companyService.getCompanyIfExist(apiKey);
-
     res.status(200).send(existingCompany);
 };

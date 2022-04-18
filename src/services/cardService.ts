@@ -13,7 +13,6 @@ export async function getAllCardsIfExist(){
 
     errorUtils.errorNotFound(card, entityName)
     
-    console.log('service:', card);
     return card;
 };
 
@@ -38,7 +37,6 @@ export async function validateCreation(employeeId: number, companyId: number, ty
 
 export async function createCard(employeeId: number, type: cardRepository.TransactionTypes) {
     const cardData = await formatCardData(employeeId, type);
-
     await cardRepository.insert(cardData);
 };
 
@@ -80,7 +78,6 @@ async function formatEmployeeName(employeeId: number) {
 
 async function createCriptoCVV(){
     const securityCode = faker.finance.creditCardCVV();
-    console.log('securityCode:', securityCode)
     const hashedSecurityCode = bcrypt.hashSync(securityCode, 10);
     return hashedSecurityCode;
 };
@@ -92,31 +89,34 @@ export async function deleteCardById(id: number){
 export async function activateCard(securityCode: string, password: string, originalCardId: number){
     const entityName = 'card';
 
-    // Somente cartões cadastrados devem ser ativados
     const cardData = await cardRepository.findById(originalCardId);
     errorUtils.errorNotFound(cardData, entityName)
 
-    // Somente cartões não expirados devem ser ativados
-    const currentDate = dayjs().format("MM/YY");
-    const expirationDate = cardData.expirationDate;
-    const isWithinExpirationDate = dayjs(currentDate).isBefore(expirationDate);
-    if(!isWithinExpirationDate) throw {type: 'unauthorized', message:'your card has expired'};
+    await verifyCardExpirationDate(cardData);
+    await verifyCVC(securityCode, cardData);
+    await verifyIfCardActivated(cardData);
 
-    // O CVC deverá ser recebido e verificado para garantir a segurança da requisição
-    if(!bcrypt.compareSync(securityCode, cardData.securityCode)) throw {type: 'unauthorized', message:'CVV invalid'};
-    
-    // Cartões já ativados (com senha cadastrada) não devem poder ser ativados de novo
-    if(cardData.password) throw {type: 'conflict', message:'card has been activated'};
-
-    // A senha do cartão deverá ser persistida de forma criptografada por ser um dado sensível
     const hashedPassword = bcrypt.hashSync(password, 10);
     const cardDataValidated = {
         password: hashedPassword,
         originalCardId: originalCardId
     };
-
-    // validar cartao
     await cardRepository.update(originalCardId, cardDataValidated);
+};
+
+async function verifyCardExpirationDate(cardData: cardRepository.Card){
+    const currentDate = dayjs().format("MM/YY");
+    const expirationDate = cardData.expirationDate;
+    const isWithinExpirationDate = dayjs(currentDate).isBefore(expirationDate);
+    if(!isWithinExpirationDate) throw { type: 'unauthorized', message:'your card has expired' }; 
+};
+
+async function verifyCVC(securityCode: string, cardData: cardRepository.Card){
+    if(!bcrypt.compareSync(securityCode, cardData.securityCode)) throw {type: 'unauthorized', message:'CVV invalid'};
+};
+
+async function verifyIfCardActivated(cardData: cardRepository.Card){
+    if(cardData.password) throw {type: 'conflict', message:'card has been activated'};
 };
 
 export async function getBalanceAndTransactions(id: number){

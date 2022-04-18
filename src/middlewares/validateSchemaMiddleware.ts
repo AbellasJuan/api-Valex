@@ -6,7 +6,7 @@ export default function validateSchemaMiddleware(schema: any) {
 
         if (validation.error) {
             return res.status(422).send(validation.error.details.map(obj => (obj.message)));
-        }
+        };
 
         next();
     }

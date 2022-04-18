@@ -7,6 +7,5 @@ export async function rechargeCard(req: Request, res: Response) {
     const idTypeNumber = Number(cardId);
 
     await rechargeServices.rechargeCard(idTypeNumber, amount)
-
     res.sendStatus(200);
 };

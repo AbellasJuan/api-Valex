@@ -5,36 +5,43 @@ import * as paymentRepository from '../repositories/paymentRepository.js';
 import * as businessRepository from '../repositories/businessRepository.js';
 import * as cardService from '../services/cardService.js';
 
-export async function purchase(cardId: number, password: string, businessId: number, amount: number) {
+export async function createTransaction(cardId: number, password: string, businessId: number, amount: number) {
+
     const cardData = await cardRepository.findById(cardId);
-    if (!cardData) throw { type: 'not_found', message: 'card not found' };
+    
+    await verifyIfCardExist(cardData);
+    await verifyCardExpirationDate(cardData);
+    await verifyCardPassword(password, cardData);
+    await verifyExistingBusiness(businessId, cardData);
+    await verifyIfUserHasCredit(cardId, amount)
 
-    console.log(cardId, password, businessId, amount)
+    await paymentRepository.insert({ cardId, businessId, amount })
+};
 
-    //ver se o cartao ta na validade
+async function verifyCardExpirationDate(cardData: cardRepository.Card){
     const currentDate = dayjs().format("MM/YY");
     const expirationDate = cardData.expirationDate;
     const isWithinExpirationDate = dayjs(currentDate).isBefore(expirationDate);
     if(!isWithinExpirationDate) throw { type: 'unauthorized', message:'your card has expired' }; 
+};
 
-    //ver se a senha do cartao ta correta
+async function verifyCardPassword(password: string, cardData: cardRepository.Card){
     if (!bcrypt.compareSync(password, cardData.password)) throw { type: 'unauthorized', message: 'incorrect password' };
+};
 
-    //ver se business existe
+async function verifyExistingBusiness(businessId: number, cardData: cardRepository.Card){
     const business = await businessRepository.findById(businessId);
-    console.log(business)
-    if (!business) throw { type:'not_found', message: 'establishment not found' };
-
-    //business nao existe
-    console.log(business.type)
+    
+    if(!business) throw { type:'not_found', message: 'establishment not found' };
     if(!business.type) throw {type: 'not_found', message:'business type not found'};
-
-    //ver se o tipo da compra bate com o tipo do cartao
     if(business.type !== cardData.type) throw { type: 'not_found', message:'business type not found for this user' };
+};
 
-    //ver se  o cara tem credito pra fazer aquela compra
+async function verifyIfUserHasCredit(cardId: number, amount: number){
     const amountAvailable = await cardService.getBalanceAndTransactions(cardId);
-    if (amountAvailable.balance < amount) throw { type: 'unauthorized', message: 'verify if you have credit'} ;
+    if (amountAvailable.balance < amount) throw { type: 'unauthorized', message: 'check your balance'} ;
+};
 
-    await paymentRepository.insert({ cardId, businessId, amount })
+async function verifyIfCardExist(cardData: cardRepository.Card){
+    if(!cardData) throw { type: 'not_found', message: 'card not found' };
 };
