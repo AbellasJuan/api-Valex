@@ -73,6 +73,7 @@ async function formatEmployeeName(employeeId: number) {
 
 async function createCriptoCVV(){
     const securityCode = faker.finance.creditCardCVV();
+    console.log(securityCode);
     const hashedSecurityCode = bcrypt.hashSync(securityCode, 10);
     return hashedSecurityCode;
 };
