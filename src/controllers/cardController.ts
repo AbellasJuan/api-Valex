@@ -10,8 +10,8 @@ export async function getCardByCardId(req: Request, res: Response){
     const { id } = req.params;
     const idTypeNumber = Number(id);
 
-    await cardService.getCardByCardIdIfExist(idTypeNumber);
-    res.sendStatus(200)
+    const existingCard = await cardService.getCardByCardIdIfExist(idTypeNumber);
+    res.status(200).send(existingCard);
 };
 
 export async function postCard(req: Request, res: Response){
