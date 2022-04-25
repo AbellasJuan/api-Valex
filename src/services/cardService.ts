@@ -5,29 +5,31 @@ import * as employeeRepository from "../repositories/employeeRepository.js";
 import * as cardRepository from "../repositories/cardRepository.js";
 import * as paymentRepository from "../repositories/paymentRepository.js";
 import * as rechargesRepository from "../repositories/rechargeRepository.js";
+import { notFoundError } from "../errors/notFoundError.js";
+import { unauthorizedError } from "../errors/unauthorizedError.js";
 
 export async function getAllCardsIfExist(){
     const cardData = await cardRepository.find();
-
-    if(cardData.length === 0 || !cardData) throw {type: 'not_found', message: 'card not found'};
     
+    if(cardData.length === 0 || !cardData) throw notFoundError('card');
     return cardData;
 };
 
 export async function getCardByCardIdIfExist(id: number){
     const cardData = await cardRepository.findById(id);
 
-    if(!cardData) throw {type: 'not_found', message: 'card not found'};
+    if(!cardData) throw notFoundError('card');
+
     return cardData;
 };
 
 export async function validateCreation(employeeId: number, companyId: number, type: cardRepository.TransactionTypes) {
     const employee = await employeeRepository.findById(employeeId);
-    if(!employee) throw {type: 'not_found', message: 'employee not found'};
-    if (employee.companyId !== companyId) throw {type: 'unauthorized', message:'unauthorized to create card'};
+    if(!employee) throw notFoundError('employee');
+    if (employee.companyId !== companyId) throw unauthorizedError(); 
 
     const cardData = await cardRepository.findByTypeAndEmployeeId(type, employeeId);
-    if(cardData) throw {type: 'unauthorized', message:'unauthorized to create card'};
+    if(cardData) throw unauthorizedError(); 
 };
 
 export async function createCard(employeeId: number, type: cardRepository.TransactionTypes) {
@@ -84,7 +86,7 @@ export async function deleteCardById(id: number){
 
 export async function activateCard(securityCode: string, password: string, originalCardId: number){
     const cardData = await cardRepository.findById(originalCardId);
-    if(cardData) throw {type: 'not_found', message: 'card not found'};
+    if(cardData) throw notFoundError('card');
 
     await verifyCardExpirationDate(cardData);
     await verifyCVC(securityCode, cardData);
@@ -102,20 +104,20 @@ async function verifyCardExpirationDate(cardData: cardRepository.Card){
     const currentDate = dayjs().format("MM/YY");
     const expirationDate = cardData.expirationDate;
     const isWithinExpirationDate = dayjs(currentDate).isBefore(expirationDate);
-    if(!isWithinExpirationDate) throw { type: 'unauthorized', message:'your card has expired' }; 
+    if(!isWithinExpirationDate) throw unauthorizedError(); 
 };
 
 async function verifyCVC(securityCode: string, cardData: cardRepository.Card){
-    if(!bcrypt.compareSync(securityCode, cardData.securityCode)) throw {type: 'unauthorized', message:'CVV invalid'};
+    if(!bcrypt.compareSync(securityCode, cardData.securityCode)) throw unauthorizedError();
 };
 
 async function verifyIfCardActivated(cardData: cardRepository.Card){
-    if(cardData.password) throw {type: 'conflict', message:'card has been activated'};
+    if(cardData.password) throw unauthorizedError(); 
 };
 
 export async function getBalanceAndTransactions(id: number){
 	const cardData = await cardRepository.findById(id);
-	if (!cardData) throw { type: 'nonexistent card', message: 'The card is not registered' }
+	if (!cardData) throw notFoundError('card');
 
 	const transactions = await paymentRepository.findByCardId(id);
 	const recharges =  await rechargesRepository.findByCardId(id);
